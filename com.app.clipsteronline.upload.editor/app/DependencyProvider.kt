@@ -2,7 +2,7 @@ package com.app.clipsteronline.upload.editor.app
 
 import android.content.Context
 import com.app.clipsteronline.upload.editor.player.PlayerEngine
-import com.app.clipsteronline.upload.editor.timeline.TimelineEngine
+import com.app.clipsteronline.upload.editor.timeline.engine.TimelineEngine
 import com.app.clipsteronline.upload.editor.export.ExportEngine
 import com.app.clipsteronline.upload.editor.audio.AudioEngine
 import com.app.clipsteronline.upload.editor.effects.EffectEngine
@@ -35,7 +35,7 @@ class DependencyProvider(private val context: Context) {
      */
     fun getTimelineEngine(): TimelineEngine {
         return timelineEngine ?: synchronized(this) {
-            timelineEngine ?: TimelineEngine(context).also { timelineEngine = it }
+            timelineEngine ?: TimelineEngine().also { timelineEngine = it }
         }
     }
 
@@ -80,7 +80,7 @@ class DependencyProvider(private val context: Context) {
      */
     fun release() {
         playerEngine?.release()
-        timelineEngine?.release()
+        timelineEngine?.let { /* no release method */ }
         exportEngine?.release()
         audioEngine?.release()
         effectEngine?.release()
@@ -94,11 +94,3 @@ class DependencyProvider(private val context: Context) {
         renderEngine = null
     }
 }
-
-// Placeholder imports for compilation - would be realengine classes in actual implementation
-class PlayerEngine(ctx: Context) {}
-class TimelineEngine(ctx: Context) {}
-class ExportEngine(ctx: Context) {}
-class AudioEngine(ctx: Context) {}
-class EffectEngine(ctx: Context) {}
-class RenderEngine(ctx: Context) {}

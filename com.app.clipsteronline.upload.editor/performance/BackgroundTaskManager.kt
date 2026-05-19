@@ -113,7 +113,7 @@ class BackgroundTaskManager(
      * Pause all.
      */
     fun pauseAll() {
-        scope.coroutineContext[Job]?.cancelchildren()
+        scope.coroutineContext[Job]?.cancelChildren()
         updateState()
     }
 

@@ -208,7 +208,7 @@ class TimelineRenderer(
         zoom: Float,
         scrollX: Float
     ): Pair<Clip, TimelineTrack>? {
-        val timeMs = getTimeForTime(x + scrollX, zoom)
+        val timeMs = getTimeForX(x + scrollX, zoom)
         val trackIndex = (y / trackHeight).toInt()
 
         val track = tracks.getOrNull(trackIndex) ?: return null

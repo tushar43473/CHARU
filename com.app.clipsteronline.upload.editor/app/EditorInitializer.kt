@@ -1,6 +1,11 @@
 package com.app.clipsteronline.upload.editor.app
 
 import android.content.Context
+import com.app.clipsteronline.upload.editor.database.EditorDatabase
+import com.app.clipsteronline.upload.editor.performance.MemoryManager
+import com.app.clipsteronline.upload.editor.player.PlayerEngine
+import com.app.clipsteronline.upload.editor.render.RenderEngine
+import com.app.clipsteronline.upload.editor.timeline.engine.TimelineEngine
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -18,6 +23,32 @@ class EditorInitializer(
     val initState: StateFlow<InitState> = _initState.asStateFlow()
 
     private var initJob: Job? = null
+
+    // Engine instances
+    private var playerEngine: PlayerEngine? = null
+    private var timelineEngine: TimelineEngine? = null
+    private var renderEngine: RenderEngine? = null
+
+    init {
+        playerEngine = PlayerEngine(context, scope)
+        timelineEngine = TimelineEngine(scope)
+        renderEngine = RenderEngine(context)
+    }
+
+    /**
+     * Get player engine.
+     */
+    fun getPlayer(): PlayerEngine = playerEngine ?: PlayerEngine(context, scope).also { playerEngine = it }
+
+    /**
+     * Get timeline engine.
+     */
+    fun getTimeline(): TimelineEngine = timelineEngine ?: TimelineEngine(scope).also { timelineEngine = it }
+
+    /**
+     * Get render engine.
+     */
+    fun getRenderEngine(): RenderEngine = renderEngine ?: RenderEngine(context).also { renderEngine = it }
 
     /**
      * Start initialization.

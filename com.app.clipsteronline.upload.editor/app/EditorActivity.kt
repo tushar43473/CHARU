@@ -307,13 +307,13 @@ class EditorActivity : Activity() {
  */
 class VideoPlayerView(context: android.content.Context) : FrameLayout(context) {
 
-    private var player: MediaPlayer? = null
+    private var player: com.app.clipsteronline.upload.editor.player.PlayerEngine? = null
 
     init {
         setBackgroundColor(Color.BLACK)
     }
 
-    fun bindPlayer(player: MediaPlayer) {
+    fun bindPlayer(player: com.app.clipsteronline.upload.editor.player.PlayerEngine) {
         this.player = player
     }
 
@@ -331,14 +331,14 @@ class VideoPlayerView(context: android.content.Context) : FrameLayout(context) {
  */
 class TimelineView(context: android.content.Context) : FrameLayout(context) {
 
-    private var timeline: TimelineManager? = null
+    private var timeline: com.app.clipsteronline.upload.editor.timeline.engine.TimelineEngine? = null
     private var currentState: EditorState? = null
 
     init {
         setBackgroundColor(Color.parseColor("#1A1A1A"))
     }
 
-    fun bindTimeline(timeline: TimelineManager) {
+    fun bindTimeline(timeline: com.app.clipsteronline.upload.editor.timeline.engine.TimelineEngine) {
         this.timeline = timeline
     }
 

@@ -177,6 +177,7 @@ data class ImportState(
  */
 enum class ImportStatus {
     IDLE,
+    QUEUED,
     PENDING,
     IMPORTING,
     COMPLETE,

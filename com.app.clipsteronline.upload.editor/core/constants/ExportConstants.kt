@@ -75,7 +75,7 @@ object ExportConstants {
     const val BITRATE_720P = 5_000_000 // 5 Mbps
     const val BITRATE_1080P = 10_000_000 // 10 Mbps
     const val BITRATE_1440P = 20_000_000 // 20 Mbps
-    const val BITRATE_4K = 35_000_000 // 35 Mbps
+    const val BITRATE_4K_SOURCE = 35_000_000 // 35 Mbps from source
 
     // Variable bitrate settings
     const val VBR_ENABLED = true

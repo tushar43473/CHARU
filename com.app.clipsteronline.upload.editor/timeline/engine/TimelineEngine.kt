@@ -87,7 +87,7 @@ class TimelineEngine(
      */
     fun addTrack(track: TimelineTrack) {
         val updatedTracks = timeline.tracks + track
-        timeline = timeline.copy(tracks = updatedTracks, tracks = updatedTracks)
+        timeline = timeline.copy(tracks = updatedTracks)
         updateState { copy(trackCount = updatedTracks.size) }
         timelineListener?.onTrackAdded(track)
     }

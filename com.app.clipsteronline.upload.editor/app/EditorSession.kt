@@ -1,3 +1,11 @@
 package com.app.clipsteronline.upload.editor.app
 
-data class EditorSession(val updatedAtMs: Long = System.currentTimeMillis())
+import java.util.UUID
+
+data class EditorSession(
+    val id: String = UUID.randomUUID().toString(),
+    val projectId: String,
+    val createdAtMs: Long = System.currentTimeMillis(),
+    val updatedAtMs: Long = createdAtMs,
+    val lastSnapshot: EditorState? = null,
+)

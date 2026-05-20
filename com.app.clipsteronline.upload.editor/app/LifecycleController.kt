@@ -1,3 +1,9 @@
 package com.app.clipsteronline.upload.editor.app
 
-interface LifecycleController { fun onStart(); fun onStop() }
+interface LifecycleController {
+    val id: String
+    fun onCreate(dependencies: DependencyProvider)
+    fun onForeground()
+    fun onBackground()
+    fun onDestroy()
+}

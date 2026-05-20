@@ -1,5 +1,3 @@
 package com.app.clipsteronline.upload.editor.sticker
 
-class GIFStickerRenderer {
-    fun configure() {}
-}
+class GIFStickerRenderer { fun configure() = Unit }

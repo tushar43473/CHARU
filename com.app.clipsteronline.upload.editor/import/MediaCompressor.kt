@@ -1,5 +1,3 @@
 package com.app.clipsteronline.upload.editor.import
 
-class MediaCompressor {
-    fun configure() {}
-}
+class MediaCompressor { fun configure() = Unit }

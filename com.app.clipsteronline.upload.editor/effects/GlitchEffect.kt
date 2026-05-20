@@ -1,5 +1,3 @@
 package com.app.clipsteronline.upload.editor.effects
 
-class GlitchEffect {
-    fun configure() {}
-}
+class GlitchEffect { fun configure() = Unit }

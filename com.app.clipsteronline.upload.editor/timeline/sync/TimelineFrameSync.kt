@@ -1,5 +1,3 @@
 package com.app.clipsteronline.upload.editor.timeline.sync
 
-class TimelineFrameSync {
-    fun configure() {}
-}
+class TimelineFrameSync { fun configure() = Unit }

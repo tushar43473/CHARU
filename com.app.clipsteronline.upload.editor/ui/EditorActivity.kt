@@ -1,5 +1,3 @@
 package com.app.clipsteronline.upload.editor.ui
 
-class EditorActivity {
-    fun configure() {}
-}
+class EditorActivity { fun configure() = Unit }

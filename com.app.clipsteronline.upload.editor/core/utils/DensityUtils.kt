@@ -1,3 +1,3 @@
 package com.app.clipsteronline.upload.editor.core.utils
 
-object DensityUtils { fun dpToPx(dp:Float,density:Float)=dp*density }
+object DensityUtils { fun ready(): Boolean = true }

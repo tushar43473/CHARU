@@ -1,5 +1,3 @@
 package com.app.clipsteronline.upload.editor.ui.effects
 
-class EffectPicker {
-    fun configure() {}
-}
+class EffectPicker { fun configure() = Unit }

@@ -1,5 +1,3 @@
 package com.app.clipsteronline.upload.editor.database
 
-class MediaCacheDao {
-    fun configure() {}
-}
+class MediaCacheDao { fun initialize() = Unit }

@@ -1,5 +1,3 @@
 package com.app.clipsteronline.upload.editor.ui.toolbar
 
-class ExportToolbar {
-    fun configure() {}
-}
+class ExportToolbar { fun configure() = Unit }

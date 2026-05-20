@@ -1,5 +1,3 @@
 package com.app.clipsteronline.upload.editor.export
 
-class ExportSession {
-    fun configure() {}
-}
+data class ExportSession(val updatedAtMs: Long = System.currentTimeMillis())

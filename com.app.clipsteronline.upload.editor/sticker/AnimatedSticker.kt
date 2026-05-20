@@ -1,5 +1,3 @@
 package com.app.clipsteronline.upload.editor.sticker
 
-class AnimatedSticker {
-    fun configure() {}
-}
+class AnimatedSticker { fun configure() = Unit }

@@ -1,5 +1,3 @@
 package com.app.clipsteronline.upload.editor.ui.effects
 
-class EffectIntensitySlider {
-    fun configure() {}
-}
+class EffectIntensitySlider { fun configure() = Unit }

@@ -1,5 +1,3 @@
 package com.app.clipsteronline.upload.editor.player
 
-class PlaybackState {
-    fun configure() {}
-}
+data class PlaybackState(val updatedAtMs: Long = System.currentTimeMillis())

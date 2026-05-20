@@ -1,5 +1,3 @@
 package com.app.clipsteronline.upload.editor.timeline.gestures
 
-class TimelineGesture {
-    fun configure() {}
-}
+class TimelineGesture { fun configure() = Unit }

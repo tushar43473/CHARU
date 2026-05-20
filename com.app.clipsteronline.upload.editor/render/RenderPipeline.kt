@@ -1,5 +1,3 @@
 package com.app.clipsteronline.upload.editor.render
 
-class RenderPipeline {
-    fun configure() {}
-}
+class RenderPipeline { fun configure() = Unit }

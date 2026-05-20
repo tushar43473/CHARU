@@ -1,3 +1,3 @@
 package com.app.clipsteronline.upload.editor.core.manager
 
-class RenderManager { fun scheduleRender() {} }
+class RenderManager { fun configure() = Unit }

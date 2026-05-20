@@ -1,5 +1,3 @@
 package com.app.clipsteronline.upload.editor.timeline.ui
 
-class TimelineRulerView {
-    fun configure() {}
-}
+class TimelineRulerView { fun configure() = Unit }

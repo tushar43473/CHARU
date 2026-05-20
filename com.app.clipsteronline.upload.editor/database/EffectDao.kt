@@ -1,5 +1,3 @@
 package com.app.clipsteronline.upload.editor.database
 
-class EffectDao {
-    fun configure() {}
-}
+class EffectDao { fun initialize() = Unit }

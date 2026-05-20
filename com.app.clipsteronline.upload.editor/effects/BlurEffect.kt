@@ -1,5 +1,3 @@
 package com.app.clipsteronline.upload.editor.effects
 
-class BlurEffect {
-    fun configure() {}
-}
+class BlurEffect { fun configure() = Unit }

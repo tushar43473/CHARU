@@ -1,5 +1,3 @@
 package com.app.clipsteronline.upload.editor.export
 
-class ExportProgressTracker {
-    fun configure() {}
-}
+class ExportProgressTracker { fun configure() = Unit }

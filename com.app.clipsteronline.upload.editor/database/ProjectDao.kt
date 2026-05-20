@@ -1,5 +1,3 @@
 package com.app.clipsteronline.upload.editor.database
 
-class ProjectDao {
-    fun configure() {}
-}
+class ProjectDao { fun initialize() = Unit }

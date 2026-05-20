@@ -19,14 +19,16 @@ class ClipResizeGesture(
         deltaPx: Float,
         zoom: Float,
         minDurationMs: Long,
+        ripple: Boolean,
         targets: List<com.app.clipsteronline.upload.editor.timeline.engine.SnapTarget>,
     ): ResizeResult {
         val deltaMs = calculator.pxDeltaToTimeDeltaMs(abs(deltaPx), zoom) * if (deltaPx < 0f) -1 else 1
         val unsnapped = (currentStartMs + deltaMs).coerceAtMost(currentEndMs - minDurationMs)
         val snapped = snapEngine.resolveSnap(unsnapped, targets, zoom, calculator, excludedClipId = clipId)
-        val finalStart = max(0L, if (snapped.didSnap) snapped.snappedTimeMs.coerceAtMost(currentEndMs - minDurationMs) else unsnapped)
+        val candidate = if (snapped.didSnap) snapped.snappedTimeMs.coerceAtMost(currentEndMs - minDurationMs) else unsnapped
+        val finalStart = max(0L, snapEngine.quantizeToFrame(candidate))
         emitGuide(finalStart, zoom, snapped)
-        return ResizeResult(startMs = finalStart, endMs = currentEndMs, snap = snapped)
+        return ResizeResult(startMs = finalStart, endMs = currentEndMs, snap = snapped, ripple = ripple)
     }
 
     fun resizeEnd(
@@ -36,14 +38,16 @@ class ClipResizeGesture(
         deltaPx: Float,
         zoom: Float,
         minDurationMs: Long,
+        ripple: Boolean,
         targets: List<com.app.clipsteronline.upload.editor.timeline.engine.SnapTarget>,
     ): ResizeResult {
         val deltaMs = calculator.pxDeltaToTimeDeltaMs(abs(deltaPx), zoom) * if (deltaPx < 0f) -1 else 1
         val unsnapped = (currentEndMs + deltaMs).coerceAtLeast(currentStartMs + minDurationMs)
         val snapped = snapEngine.resolveSnap(unsnapped, targets, zoom, calculator, excludedClipId = clipId)
-        val finalEnd = if (snapped.didSnap) snapped.snappedTimeMs.coerceAtLeast(currentStartMs + minDurationMs) else unsnapped
+        val candidate = if (snapped.didSnap) snapped.snappedTimeMs.coerceAtLeast(currentStartMs + minDurationMs) else unsnapped
+        val finalEnd = snapEngine.quantizeToFrame(candidate).coerceAtLeast(currentStartMs + minDurationMs)
         emitGuide(finalEnd, zoom, snapped)
-        return ResizeResult(startMs = currentStartMs, endMs = finalEnd, snap = snapped)
+        return ResizeResult(startMs = currentStartMs, endMs = finalEnd, snap = snapped, ripple = ripple)
     }
 
     fun end() = guideEngine.clear()
@@ -57,4 +61,5 @@ data class ResizeResult(
     val startMs: Long,
     val endMs: Long,
     val snap: SnapResult,
+    val ripple: Boolean,
 )

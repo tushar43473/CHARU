@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.asStateFlow
 class TimelineScrollEngine(
     context: Context,
     interpolator: Interpolator? = null,
+    private val physics: TimelinePhysics = TimelinePhysics(),
 ) {
     private val scroller = OverScroller(context, interpolator)
 
@@ -20,20 +21,28 @@ class TimelineScrollEngine(
 
     @Synchronized
     fun setBounds(maxHorizontalPx: Double, maxVerticalPx: Double) {
-        _state.value = _state.value.copy(
+        val current = _state.value
+        _state.value = current.copy(
             maxHorizontalPx = max(0.0, maxHorizontalPx),
             maxVerticalPx = max(0.0, maxVerticalPx),
-            horizontalPx = _state.value.horizontalPx.coerceIn(0.0, maxHorizontalPx),
-            verticalPx = _state.value.verticalPx.coerceIn(0.0, maxVerticalPx),
+            horizontalPx = current.horizontalPx.coerceIn(0.0, maxHorizontalPx),
+            verticalPx = current.verticalPx.coerceIn(0.0, maxVerticalPx),
         )
     }
 
     @Synchronized
-    fun scrollBy(dx: Double, dy: Double): TimelineScrollState {
+    fun scrollBy(dx: Double, dy: Double, viewportWidthPx: Double = 0.0, viewportHeightPx: Double = 0.0): TimelineScrollState {
         val current = _state.value
+        val dampedDx = physics.dampDelta(dx, viewportWidthPx)
+        val dampedDy = physics.dampDelta(dy, viewportHeightPx)
+        val horizontal = physics.resolveBounds(current.horizontalPx + dampedDx, 0.0, current.maxHorizontalPx)
+        val vertical = physics.resolveBounds(current.verticalPx + dampedDy, 0.0, current.maxVerticalPx)
+
         val next = current.copy(
-            horizontalPx = (current.horizontalPx + dx).coerceIn(0.0, current.maxHorizontalPx),
-            verticalPx = (current.verticalPx + dy).coerceIn(0.0, current.maxVerticalPx),
+            horizontalPx = horizontal.clampedPositionPx,
+            verticalPx = vertical.clampedPositionPx,
+            overscrollXPx = horizontal.overscrollPx,
+            overscrollYPx = vertical.overscrollPx,
             velocityX = 0.0,
             velocityY = 0.0,
             isFlinging = false,
@@ -45,19 +54,24 @@ class TimelineScrollEngine(
     @Synchronized
     fun fling(velocityX: Double, velocityY: Double): TimelineScrollState {
         val current = _state.value
+        val safeVelocityX = physics.sanitizeVelocity(velocityX)
+        val safeVelocityY = physics.sanitizeVelocity(velocityY)
+
         scroller.fling(
             current.horizontalPx.toInt(),
             current.verticalPx.toInt(),
-            velocityX.toInt(),
-            velocityY.toInt(),
+            safeVelocityX.toInt(),
+            safeVelocityY.toInt(),
             0,
             current.maxHorizontalPx.toInt(),
             0,
             current.maxVerticalPx.toInt(),
         )
         _state.value = current.copy(
-            velocityX = velocityX,
-            velocityY = velocityY,
+            velocityX = safeVelocityX,
+            velocityY = safeVelocityY,
+            overscrollXPx = 0.0,
+            overscrollYPx = 0.0,
             isFlinging = true,
         )
         return _state.value
@@ -70,23 +84,34 @@ class TimelineScrollEngine(
     }
 
     @Synchronized
-    fun computeNextFrame(): TimelineScrollState {
+    fun computeNextFrame(frameDeltaMs: Long = 16L): TimelineScrollState {
+        val current = _state.value
         if (!scroller.computeScrollOffset()) {
-            if (_state.value.isFlinging) {
-                _state.value = _state.value.copy(isFlinging = false, velocityX = 0.0, velocityY = 0.0)
+            val springX = physics.springBackVelocity(current.overscrollXPx)
+            val springY = physics.springBackVelocity(current.overscrollYPx)
+            return if (abs(springX) < 0.1 && abs(springY) < 0.1) {
+                _state.value = current.copy(isFlinging = false, velocityX = 0.0, velocityY = 0.0, overscrollXPx = 0.0, overscrollYPx = 0.0)
+                _state.value
+            } else {
+                val recovered = scrollBy(springX * (frameDeltaMs / 1000.0), springY * (frameDeltaMs / 1000.0))
+                _state.value = recovered.copy(isFlinging = true)
+                _state.value
             }
-            return _state.value
         }
 
-        val current = _state.value
-        val nextHorizontal = scroller.currX.toDouble().coerceIn(0.0, current.maxHorizontalPx)
-        val nextVertical = scroller.currY.toDouble().coerceIn(0.0, current.maxVerticalPx)
+        val horizontal = physics.resolveBounds(scroller.currX.toDouble(), 0.0, current.maxHorizontalPx)
+        val vertical = physics.resolveBounds(scroller.currY.toDouble(), 0.0, current.maxVerticalPx)
+        val rawVelocity = scroller.currVelocity.toDouble()
+        val signedX = rawVelocity * velocitySign(current.horizontalPx, horizontal.clampedPositionPx)
+        val signedY = rawVelocity * velocitySign(current.verticalPx, vertical.clampedPositionPx)
 
         val next = current.copy(
-            horizontalPx = nextHorizontal,
-            verticalPx = nextVertical,
-            velocityX = scroller.currVelocity.toDouble() * velocitySign(current.horizontalPx, nextHorizontal),
-            velocityY = scroller.currVelocity.toDouble() * velocitySign(current.verticalPx, nextVertical),
+            horizontalPx = horizontal.clampedPositionPx,
+            verticalPx = vertical.clampedPositionPx,
+            overscrollXPx = horizontal.overscrollPx,
+            overscrollYPx = vertical.overscrollPx,
+            velocityX = physics.applyFriction(signedX, frameDeltaMs),
+            velocityY = physics.applyFriction(signedY, frameDeltaMs),
             isFlinging = !scroller.isFinished,
         )
         _state.value = next
@@ -101,9 +126,13 @@ class TimelineScrollEngine(
 
     fun scrollTo(horizontalPx: Double, verticalPx: Double): TimelineScrollState {
         val current = _state.value
+        val horizontal = physics.resolveBounds(horizontalPx, 0.0, current.maxHorizontalPx)
+        val vertical = physics.resolveBounds(verticalPx, 0.0, current.maxVerticalPx)
         val next = current.copy(
-            horizontalPx = horizontalPx.coerceIn(0.0, current.maxHorizontalPx),
-            verticalPx = verticalPx.coerceIn(0.0, current.maxVerticalPx),
+            horizontalPx = horizontal.clampedPositionPx,
+            verticalPx = vertical.clampedPositionPx,
+            overscrollXPx = horizontal.overscrollPx,
+            overscrollYPx = vertical.overscrollPx,
             isFlinging = false,
             velocityX = 0.0,
             velocityY = 0.0,
@@ -126,5 +155,7 @@ data class TimelineScrollState(
     val velocityY: Double = 0.0,
     val maxHorizontalPx: Double = 0.0,
     val maxVerticalPx: Double = 0.0,
+    val overscrollXPx: Double = 0.0,
+    val overscrollYPx: Double = 0.0,
     val isFlinging: Boolean = false,
 )

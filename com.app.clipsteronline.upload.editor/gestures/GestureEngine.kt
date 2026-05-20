@@ -1,6 +1,7 @@
 package com.app.clipsteronline.upload.editor.gestures
 
 import android.view.Choreographer
+import android.view.MotionEvent
 import com.app.clipsteronline.upload.editor.timeline.engine.TimelineScrollEngine
 import com.app.clipsteronline.upload.editor.timeline.engine.TimelineScrollState
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -9,14 +10,27 @@ import kotlinx.coroutines.flow.asStateFlow
 
 class GestureEngine(
     private val scrollEngine: TimelineScrollEngine,
+    private val timelineGestureHandler: TimelineGestureHandler,
+    private val clipGestureHandler: ClipGestureHandler,
+    private val previewGestureHandler: PreviewGestureHandler,
     private val choreographer: Choreographer = Choreographer.getInstance(),
 ) : Choreographer.FrameCallback {
 
+    private var activeChannel: GestureChannel = GestureChannel.TIMELINE
     private var lastFrameNs: Long = 0L
     private var ticking = false
 
     private val _motion = MutableStateFlow(scrollEngine.state.value)
     val motion: StateFlow<TimelineScrollState> = _motion.asStateFlow()
+
+    fun route(event: MotionEvent, preferred: GestureChannel): Boolean {
+        activeChannel = preferred
+        return when (activeChannel) {
+            GestureChannel.TIMELINE -> timelineGestureHandler.onTouchEvent(event)
+            GestureChannel.CLIP -> clipGestureHandler.onTouchEvent(event)
+            GestureChannel.PREVIEW -> previewGestureHandler.onTouchEvent(event)
+        }
+    }
 
     @Synchronized
     fun startMotionLoop() {
@@ -39,10 +53,8 @@ class GestureEngine(
         if (!ticking) return
         val deltaMs = if (lastFrameNs == 0L) 16L else ((frameTimeNanos - lastFrameNs) / 1_000_000L).coerceIn(8L, 33L)
         lastFrameNs = frameTimeNanos
-
         val state = scrollEngine.computeNextFrame(deltaMs)
         _motion.value = state
-
         if (state.isFlinging || kotlin.math.abs(state.velocityX) > 0.1 || kotlin.math.abs(state.velocityY) > 0.1) {
             choreographer.postFrameCallback(this)
         } else {
@@ -50,3 +62,5 @@ class GestureEngine(
         }
     }
 }
+
+enum class GestureChannel { TIMELINE, CLIP, PREVIEW }

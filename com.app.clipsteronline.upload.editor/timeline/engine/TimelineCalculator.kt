@@ -1,6 +1,7 @@
 package com.app.clipsteronline.upload.editor.timeline.engine
 
 import kotlin.math.abs
+import kotlin.math.roundToLong
 
 class TimelineCalculator(
     private val pxPerSecondAt1x: Float = 120f,
@@ -12,8 +13,10 @@ class TimelineCalculator(
 
     fun pxToTime(px: Float, zoom: Float): Long {
         require(zoom > 0f)
-        return ((px / (pxPerSecondAt1x * zoom)) * 1000f).toLong().coerceAtLeast(0L)
+        return ((px / (pxPerSecondAt1x * zoom)) * 1000f).roundToLong().coerceAtLeast(0L)
     }
+
+    fun pxDeltaToTimeDeltaMs(deltaPx: Float, zoom: Float): Long = abs(pxToTime(deltaPx, zoom) - pxToTime(0f, zoom))
 
     fun clampPlayhead(playheadMs: Long, durationMs: Long): Long = playheadMs.coerceIn(0L, durationMs.coerceAtLeast(0L))
 

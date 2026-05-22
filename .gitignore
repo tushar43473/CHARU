@@ -1,0 +1,50 @@
+# Gradle files
+.gradle/
+build/
+*.apk
+*.aar
+*.ap_
+*.aab
+
+# Local configuration file (sdk path, etc)
+local.properties
+
+# Log/OS files
+*.log
+.DS_Store
+
+# Android Studio files
+.idea/
+.classpath
+.project
+.settings/
+*.iml
+*.iws
+*.iml
+
+# The Android Open Source Project build system does not use Gradle by default
+# but when running build scripts from the command line, gradle
+# is used as follows:
+#     cd /path/to/checked/out/android
+#     gradle clean
+
+# Placeholder of files to track with git
+!.gitkeep
+
+# Output of the go coverage tool
+*.out
+
+# Dependency directories (remove the comment below to include it)
+vendor/
+
+# Compiled class file
+*.class
+
+# Generated files
+bin/
+gen/
+out/
+
+# misc
+*.swp
+.env

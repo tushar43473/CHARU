@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<full-backup-content>
+    <!--
+    Exclude specific shared preferences, database, or file system paths:
+    <exclude domain="sharedpref" path="KEY.xml" />
+    <exclude domain="database" path="AppDatabase" />
+    <exclude domain="file" path="cache" />
+    -->
+</full-backup-content>

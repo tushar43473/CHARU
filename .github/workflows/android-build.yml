@@ -32,24 +32,18 @@ jobs:
           distribution: temurin
           java-version: '11'
 
-      - name: Install Android SDK Command-line Tools
-        run: |
-          set -e
-          mkdir -p "$ANDROID_SDK_ROOT/cmdline-tools"
-          cd "$ANDROID_SDK_ROOT/cmdline-tools"
-          curl -sS https://dl.google.com/android/repository/commandlinetools-linux-11125874_latest.zip -o cmdline-tools.zip
-          unzip -q cmdline-tools.zip
-          # Ensure folder layout expected by sdkmanager
-          mv cmdline-tools latest || true
-          export PATH="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$PATH"
-          yes | sdkmanager --sdk_root="$ANDROID_SDK_ROOT" --licenses
-          sdkmanager --sdk_root="$ANDROID_SDK_ROOT" "platform-tools" "platforms;android-34" "build-tools;34.0.0" "cmdline-tools;latest"
+      - name: Set up Android SDK (via action)
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          arch: x86_64
+          force-avd-creation: false
 
       - name: Show Java and SDK info
         run: |
           java -version
           echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
-          ls -la "$ANDROID_SDK_ROOT"
+          ls -la "$ANDROID_SDK_ROOT" || true
 
       - name: Make gradlew executable
         run: chmod +x ./gradlew

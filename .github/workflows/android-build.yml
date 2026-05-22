@@ -3,8 +3,7 @@ name: Build APK
 on:
   push:
     branches: [ main ]
-  pull_request:
-    branches: [ main ]
+  workflow_dispatch:
 
 jobs:
   build:
@@ -17,6 +16,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Setup JDK 11
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '11'
+
       - name: Cache Gradle
         uses: actions/cache@v4
         with:
@@ -26,30 +31,50 @@ jobs:
           key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*','**/gradle-wrapper.properties') }}
           restore-keys: gradle-${{ runner.os }}-
 
-      - name: Set up JDK 11
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: '11'
-
-      - name: Set up Android SDK (via action)
-        uses: reactivecircus/android-emulator-runner@v2
-        with:
-          api-level: 34
-          arch: x86_64
-          force-avd-creation: false
-
-      - name: Show Java and SDK info
+      - name: Prepare Android SDK dir
         run: |
-          java -version
-          echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
-          ls -la "$ANDROID_SDK_ROOT" || true
+          echo "SDK root: $ANDROID_SDK_ROOT"
+          mkdir -p "$ANDROID_SDK_ROOT/cmdline-tools"
+
+      - name: Download and install Android command-line tools
+        run: |
+          set -euo pipefail
+          cd "$ANDROID_SDK_ROOT/cmdline-tools"
+          URL="https://dl.google.com/android/repository/commandlinetools-linux-11125874_latest.zip"
+          ZIP=commandlinetools.zip
+          echo "Downloading $URL"
+          curl -fSL "$URL" -o "$ZIP"
+          unzip -q "$ZIP" -d tmp
+          mkdir -p latest
+          mv tmp/cmdline-tools/* latest/ || true
+          rm -rf tmp "$ZIP"
+          echo "export PATH=\"$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$PATH\"" >> $GITHUB_ENV
+
+      - name: Install SDK packages (with retries)
+        run: |
+          set -euo pipefail
+          export ANDROID_SDK_ROOT="$ANDROID_SDK_ROOT"
+          export PATH="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$PATH"
+          n=0
+          until [ $n -ge 3 ]
+          do
+            yes | sdkmanager --sdk_root="$ANDROID_SDK_ROOT" --licenses && break
+            n=$((n+1))
+            sleep 5
+          done
+          sdkmanager --sdk_root="$ANDROID_SDK_ROOT" "platform-tools" "platforms;android-34" "build-tools;34.0.0"
+
+      - name: Print installed SDK
+        run: |
+          echo "Java version:"; java -version || true
+          echo "SDK folders:"; ls -la "$ANDROID_SDK_ROOT" || true
 
       - name: Make gradlew executable
         run: chmod +x ./gradlew
 
       - name: Build Debug APK
-        run: ./gradlew clean assembleDebug --no-daemon
+        run: |
+          ./gradlew clean assembleDebug --no-daemon -Dorg.gradle.jvmargs='-Xmx2048m' --warning-mode all
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
